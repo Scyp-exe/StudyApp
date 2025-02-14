@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="quiz-container">
+        <h2>Quiz Questions</h2>
+        <div class="questions-container" id="quiz"></div>
+        <p id="result" class="result-message">Select an answer to see results.</p>
+        <div class="question-input">
+            <input type="text" id="newQuestion" placeholder="Enter question">
+            <input type="text" id="option1" placeholder="Option 1">
+            <input type="text" id="option2" placeholder="Option 2">
+            <input type="text" id="option3" placeholder="Option 3">
+            <input type="text" id="option4" placeholder="Option 4">
+            <input type="text" id="correctAnswer" placeholder="Correct Answer">
+            <button class="add-question-btn" onclick="addQuestion()">Add Question</button>
+        </div>
+    </div>
+    
+    <script>
+        let quizData = JSON.parse(localStorage.getItem("quizData")) || [];
+        
+        function saveQuizData() {
+            localStorage.setItem("quizData", JSON.stringify(quizData));
+        }
+
+        function loadQuiz() {
+            const quizContainer = document.getElementById("quiz");
+            quizContainer.innerHTML = "";
+            if (quizData.length === 0) {
+                quizContainer.innerHTML = "<p>No questions available. Add one below!</p>";
+                return;
+            }
+            quizData.forEach((questionObj, index) => {
+                const questionDiv = document.createElement("div");
+                questionDiv.classList.add("question-block");
+                questionDiv.innerHTML = `<h3>${index + 1}. ${questionObj.question}</h3>`;
+                questionObj.options.forEach(option => {
+                    const btn = document.createElement("button");
+                    btn.innerText = option;
+                    btn.classList.add("option");
+                    btn.onclick = () => selectAnswer(btn, option, questionObj.correct);
+                    questionDiv.appendChild(btn);
+                });
+                quizContainer.appendChild(questionDiv);
+            });
+        }
+
+        function selectAnswer(btn, answer, correct) {
+            btn.parentElement.querySelectorAll(".option").forEach(opt => opt.classList.remove("correct", "incorrect"));
+            btn.classList.add(answer === correct ? "correct" : "incorrect");
+            document.getElementById("result").innerText = answer === correct ? "Correct!" : "Wrong answer.";
+        }
+
+        function addQuestion() {
+            const newQuestion = document.getElementById("newQuestion").value;
+            const option1 = document.getElementById("option1").value;
+            const option2 = document.getElementById("option2").value;
+            const option3 = document.getElementById("option3").value;
+            const option4 = document.getElementById("option4").value;
+            const correctAnswer = document.getElementById("correctAnswer").value;
+            
+            if (!newQuestion || !option1 || !option2 || !option3 || !option4 || !correctAnswer) {
+                alert("Please fill all fields.");
+                return;
+            }
+            
+            quizData.push({
+                question: newQuestion,
+                options: [option1, option2, option3, option4],
+                correct: correctAnswer
+            });
+            saveQuizData();
+            loadQuiz();
+        }
+
+        window.addEventListener("beforeunload", saveQuizData);
+        loadQuiz();
+    </script>
+</body>
+</html>
